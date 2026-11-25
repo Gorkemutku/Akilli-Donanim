@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akıllı Donanım ve Cihaz Seçim Sistemi | KDS Karar Raporu</title>
+  <link rel="stylesheet" href="/static/css/academic_theme.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Academic Monograph Header -->
+  <header class="academic-header">
+    <div class="header-container">
+      <div class="header-title-block">
+        <div class="academic-seal" title="Karar Destek Sistemleri">KDS</div>
+        <div class="header-text">
+          <h1>Akıllı Donanım ve Cihaz Seçim Sistemi</h1>
+          <div class="subtitle">Karar Destek Sistemleri (DSS) Araştırma & Donanım Karar Motoru</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="meta-badge" id="db-status-badge">SQLite: Bağlanıyor...</span>
+        <span class="meta-badge" id="sync-status-badge" style="background: rgba(127, 29, 29, 0.4); border-color: rgba(254, 202, 202, 0.4);">Son Güncelleme: Kontrol Ediliyor...</span>
+        <button type="button" id="btn-header-sync-now" class="btn-secondary" style="padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: #FAF8F5; border: 1px solid #D6CFC4;" title="Canlı dış kaynaktan donanım verilerini hemen güncelle">
+          ↻ Şimdi Canlı Güncelle
+        </button>
+        <span class="meta-badge highlight">KDS v2.4 · Günlük Senkronizasyon (09:00)</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="academic-nav-container">
+    <div class="nav-tabs">
+      <button class="nav-tab-button active" data-tab="tab-analysis">
+        <span>§ 1.0</span> Karar Analizi (Değerlendirme)
+      </button>
+      <button class="nav-tab-button" data-tab="tab-database">
+        <span>§ 2.0</span> Veritabanı Kayıtları (SQLite)
+        <span class="tab-badge" id="inventory-tab-count">0</span>
+      </button>
+      <button class="nav-tab-button" data-tab="tab-methodology">
+        <span>§ 3.0</span> Veri İçe Aktar & KDS Metodolojisi
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper">
+
+    <!-- ============================================================== -->
+    <!-- SEKME 1: KARAR ANALİZİ                                         -->
+    <!-- ============================================================== -->
+    <div id="tab-analysis" class="tab-pane active">
+      <div class="kds-grid">
+
+        <!-- SOL PANEL: Kriterler ve Kısıtlar Formu -->
+        <aside class="criteria-panel">
+          <div style="border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 18px;">
+            <h3 style="font-family: var(--font-serif); font-size: 16px; color: var(--navy-primary);">
+              Karar Kriterleri & Kısıtlar
+            </h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+              Donanım gereksinimlerinizi ve bütçenizi belirleyiniz.
+            </p>
+          </div>
+
+          <!-- Kategori Seçimi -->
+          <div class="form-group">
+            <label class="form-label">Cihaz Kategorisi</label>
+            <div class="category-segmented">
+              <button type="button" class="cat-seg-btn active" data-cat="laptop">Bilgisayar</button>
+              <button type="button" class="cat-seg-btn" data-cat="phone">Telefon</button>
+              <button type="button" class="cat-seg-btn" data-cat="tablet">Tablet</button>
+            </div>
+          </div>
+
+          <!-- Bütçe Belirleme -->
+          <div class="form-group">
+            <label class="form-label" for="budget-input">Maksimum Bütçe (TL)</label>
+            <input type="number" id="budget-input" class="academic-input" step="1000" min="5000" max="250000" value="50000">
+            <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn-secondary budget-preset" data-val="25000" style="padding: 3px 8px; font-size: 11px;">25.000 ₺</button>
+              <button type="button" class="btn-secondary budget-preset" data-val="45000" style="padding: 3px 8px; font-size: 11px;">45.000 ₺</button>
+              <button type="button" class="btn-secondary budget-preset" data-val="65000" style="padding: 3px 8px; font-size: 11px;">65.000 ₺</button>
+              <button type="button" class="btn-secondary budget-preset" data-val="85000" style="padding: 3px 8px; font-size: 11px;">85.000 ₺</button>
+            </div>
+          </div>
+
+          <!-- Bütçe Toleransı -->
+          <div class="form-group">
+            <label class="form-label" for="budget-tolerance-select">Bütçe Aşım Toleransı</label>
+            <select id="budget-tolerance-select" class="academic-input" style="font-family: var(--font-sans);">
+              <option value="0.00">Sert Kısıt: Bütçeyi Aşanları Doğrudan Ele (%0)</option>
+              <option value="0.05" selected>Esnek Kısıt: %5 Bütçe Toleransı (+Kademeli Ceza)</option>
+              <option value="0.10">Geniş Tolerans: %10 Bütçe Toleransı</option>
+            </select>
+            <div class="form-helper">Tolerans bandındaki cihazlar elenmez, bütçe aşım oranına göre puan kırılır.</div>
+          </div>
+
+          <!-- BİLGİSAYAR ÖZEL KRİTERLERİ (Laptop) -->
+          <div id="laptop-specific-criteria">
+            <!-- Kullanım Amacı (Çoklu Seçim) -->
+            <div class="form-group">
+              <label class="form-label">Kullanım Amacı (Çoklu Seçilebilir)</label>
+              <div class="checkbox-list">
+                <label class="checkbox-card">
+                  <input type="checkbox" name="purpose-chk" value="oyun" checked>
+                  <div>
+                    <div class="chk-title">Oyun (Gaming)</div>
+                    <div class="chk-desc">Sert kısıt: RAM &lt; 16 GB veya GPU &lt; 65 olanlar elenir.</div>
+                  </div>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" name="purpose-chk" value="yazilim" checked>
+                  <div>
+                    <div class="chk-title">Yazılım Geliştirme</div>
+                    <div class="chk-desc">CPU gücü, sanallaştırma ve min. 16 GB RAM odaklı.</div>
+                  </div>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" name="purpose-chk" value="grafik">
+                  <div>
+                    <div class="chk-title">Grafik Tasarım & Render</div>
+                    <div class="chk-desc">Ekran panel kalitesi (min 75 puan) ve GPU öncelikli.</div>
+                  </div>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" name="purpose-chk" value="gunluk">
+                  <div>
+                    <div class="chk-title">Günlük & Ofis Kullanımı</div>
+                    <div class="chk-desc">Pil ömrü, ergonomi ve taşınabilirlik dengesi.</div>
+                  </div>
+                </label>
+              </div>
+              <div class="form-helper">Birden fazla amaç seçildiğinde kriter ağırlıkları dinamik olarak birleştirilir.</div>
+            </div>
+
+            <!-- Taşınabilirlik & Ağırlık (Çoklu Seçim) -->
+            <div class="form-group">
+              <label class="form-label">Taşınabilirlik & Ağırlık Aralığı</label>
+              <div class="checkbox-list">
+                <label class="checkbox-card">
+                  <input type="checkbox" name="weight-chk" value="hafif" checked>
+                  <div>
+                    <div class="chk-title">Hafif (&lt; 2.0 kg)</div>
+                    <div class="chk-desc">Yüksek mobilite; ultrabook ve ince iş istasyonları.</div>
+                  </div>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" name="weight-chk" value="orta" checked>
+                  <div>
+                    <div class="chk-title">Orta (2.0 - 2.5 kg)</div>
+                    <div class="chk-desc">Dengeli performans ve soğutma gövdesi.</div>
+                  </div>
+                </label>
+                <label class="checkbox-card">
+                  <input type="checkbox" name="weight-chk" value="agir" checked>
+                  <div>
+                    <div class="chk-title">Ağır / Performans (&gt; 2.5 kg)</div>
+                    <div class="chk-desc">Maksimum soğutma ve masaüstü alternatifi güç.</div>
+                  </div>
+                </label>
+              </div>
+              <div class="form-helper" style="color:var(--burgundy);">
+                <strong>Kural:</strong> 2.0 kg altı cihazlar hafif kabul edilir. Yalnızca "Hafif" seçilirse ≥ 2.0 kg cihazlar sert kısıtla elenir.
+              </div>
+            </div>
+          </div>
+
+          <!-- TELEFON & TABLET BİLGİLENDİRME PANELİ -->
+          <div id="phone-tablet-notice" style="display:none; background:#EFECE6; border:1px solid #D6CFC4; padding:14px; border-radius:4px; margin-bottom:18px;">
+            <h4 id="notice-category-title" style="font-family:var(--font-serif); font-size:14px; color:var(--navy-primary); margin-bottom:6px;"></h4>
+            <p id="notice-category-desc" style="font-size:12.5px; color:var(--text-secondary); line-height:1.45;"></p>
+          </div>
+
+          <!-- Analiz Butonu -->
+          <button type="button" id="btn-run-evaluation" class="btn-primary">
+            KDS Karar Analizini Yürüt
+          </button>
+        </aside>
+
+        <!-- SAĞ PANEL: DOĞRUDAN KARAR DESTEK ANALİZİ VE SONUÇ LİSTESİ -->
+        <section class="paper-section">
+          
+          <!-- Rapor Üst Başlık & Kısıt Özeti -->
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">
+                <span>§ 1.1</span> Karar Destek Raporu & Sonuç Matrisi
+              </h2>
+              <div class="section-subtitle" id="results-count-text">
+                Hesaplanıyor...
+              </div>
+            </div>
+            <div id="evaluation-loading" style="display:none; font-size:12px; color:var(--burgundy); font-family:var(--font-mono);">
+              Hesaplanıyor...
+            </div>
+          </div>
+
+          <!-- Aktif Kısıtlar ve Ağırlıklar Özeti -->
+          <div class="kds-report-summary" id="kds-summary-block">
+            <div class="summary-heading">
+              <span>Uygulanan Sert Kısıtlar & Eleme Kuralları</span>
+              <span style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted);">MCDM / WSM Modeli</span>
+            </div>
+            <div class="constraints-tags" id="active-constraints-tags">
+              <!-- JS will populate tags -->
+            </div>
+
+            <!-- Dinamik Ağırlık Dağılımı -->
+            <div class="weights-bar-container">
+              <div style="font-size:12px; font-weight:700; color:var(--navy-primary); margin-bottom:6px; font-family:var(--font-serif);">
+                Dinamik Kriter Ağırlıkları (Toplam = %100):
+              </div>
+              <div class="weights-grid" id="criteria-weights-display">
+                <!-- JS will populate weights -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Önerilen Cihazlar Listesi (%60 ve Üzeri) -->
+          <div style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-family: var(--font-serif); font-size: 16px; color: var(--navy-primary);">
+              Uygunluk Barajını Aşan Cihazlar (≥ %60 Puan)
+            </h3>
+            <span style="font-size:12px; color:var(--text-muted);">Puan sırasına göre azalan</span>
+          </div>
+
+          <div class="results-list" id="recommended-results-list">
+            <!-- JS will populate recommended cards -->
+          </div>
+
+          <!-- Elenen Cihazlar ve Sebepleri Bölümü -->
+          <div class="eliminated-wrapper" id="eliminated-devices-wrapper">
+            <div class="eliminated-header">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+                Elenen Cihazlar ve Gerekçeleri
+              </h3>
+              <span class="eliminated-count-badge" id="eliminated-count-badge">0 Cihaz</span>
+            </div>
+            <div class="academic-table-wrapper" style="border:none;">
+              <table class="eliminated-table">
+                <thead>
+                  <tr>
+                    <th>Cihaz / Model</th>
+                    <th>Fiyat (TL)</th>
+                    <th>Temel Donanım</th>
+                    <th>Neden Elendi? (Karar Gerekçesi)</th>
+                    <th>İncele</th>
+                  </tr>
+                </thead>
+                <tbody id="eliminated-table-body">
+                  <!-- JS will populate eliminated rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- SEKME 2: VERİTABANI KAYITLARI (SQLITE)                         -->
+    <!-- ============================================================== -->
+    <div id="tab-database" class="tab-pane">
+      <section class="paper-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <span>§ 2.0</span> SQLite Cihaz Envanteri (<code>data/devices.db</code>)
+            </h2>
+            <div class="section-subtitle">
+              Sistemdeki tüm kayıtlı cihazlar, donanım metrikleri ve KDS referans puanları.
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" id="btn-inv-sync-now" class="btn-burgundy" style="width:auto; padding:8px 14px; font-size:13px;" title="Dış canlı kaynaktan en güncel fiyat ve modelleri çek">
+              ↻ Canlı Verileri Güncelle
+            </button>
+            <button type="button" id="btn-open-add-device" class="btn-primary" style="width:auto; padding:8px 16px; font-size:13px;">
+              + Yeni Cihaz Ekle
+            </button>
+          </div>
+        </div>
+
+        <!-- Kontrol ve Filtreleme Çubuğu -->
+        <div class="inventory-controls">
+          <div class="category-segmented" style="width:340px;">
+            <button type="button" class="cat-seg-btn inv-filter-btn active" data-cat="">Tümü</button>
+            <button type="button" class="cat-seg-btn inv-filter-btn" data-cat="laptop">Bilgisayarlar</button>
+            <button type="button" class="cat-seg-btn inv-filter-btn" data-cat="phone">Telefonlar</button>
+            <button type="button" class="cat-seg-btn inv-filter-btn" data-cat="tablet">Tabletler</button>
+          </div>
+          <div style="flex:1; max-width:320px;">
+            <input type="text" id="inventory-search-input" class="academic-input" placeholder="Marka, model veya CPU ile ara...">
+          </div>
+        </div>
+
+        <!-- Cihaz Tablosu -->
+        <div class="academic-table-wrapper">
+          <table class="academic-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Kategori</th>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Fiyat (TL)</th>
+                <th>RAM / Depolama</th>
+                <th>Ağırlık</th>
+                <th>İşlemci (CPU Puanı)</th>
+                <th>Grafik (GPU Puanı)</th>
+                <th>Son Senkron</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body">
+              <!-- JS will populate inventory -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- SEKME 3: VERİ İÇE AKTAR & KDS METODOLOJİSİ                     -->
+    <!-- ============================================================== -->
+    <div id="tab-methodology" class="tab-pane">
+      <div class="methodology-article">
+        
+        <!-- Canlı Veri Senkronizasyonu & Günlük Zamanlayıcı (Scheduler) Bölümü -->
+        <section class="paper-section" style="border-top: 3px solid var(--navy-primary);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+            <h2 style="color:var(--navy-primary); font-family:var(--font-serif); font-size:18px; margin-bottom:0;">
+              Canlı Veri Senkronizasyonu & Günlük Zamanlayıcı (Scheduler)
+            </h2>
+            <button type="button" id="btn-methodology-sync-now" class="btn-burgundy" style="width:auto; padding:8px 16px;">
+              ↻ Şimdi Canlı Güncelle
+            </button>
+          </div>
+          <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:14px;">
+            Sistem harici canlı veri beslemesinden (JSON/REST API) bilgisayar, telefon ve tablet fiyat ve donanım metriklerini çekerek SQLite veritabanında <strong>UPSERT</strong> (mevcut kayıtları güncelle, yenileri ekle) mantığıyla işler.
+          </p>
+
+          <!-- Canlı Durum Kartı -->
+          <div style="background:#F4EFEB; border:1px solid #D5CCC0; border-left:4px solid var(--navy-primary); padding:16px; border-radius:4px; margin-bottom:18px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+              <div>
+                <span style="font-size:11px; text-transform:uppercase; color:var(--text-muted); display:block; font-weight:700;">Otomatik Çalışma Takvimi</span>
+                <strong style="color:var(--navy-primary); font-size:13.5px;" id="scheduler-schedule-text">Günde 1 Kez (Her gün 09:00)</strong>
+              </div>
+              <div>
+                <span style="font-size:11px; text-transform:uppercase; color:var(--text-muted); display:block; font-weight:700;">Son Canlı Güncelleme</span>
+                <strong style="color:var(--navy-primary); font-size:13.5px;" id="methodology-last-sync-time">Henüz Çalıştırılmadı</strong>
+              </div>
+              <div>
+                <span style="font-size:11px; text-transform:uppercase; color:var(--text-muted); display:block; font-weight:700;">Son Senkronizasyon Durumu</span>
+                <span class="constraint-tag" id="methodology-last-sync-status" style="background:#DCFCE7; color:#15803D; font-weight:700;">HAZIR</span>
+              </div>
+            </div>
+            <div style="margin-top:10px; font-size:12px; color:var(--text-muted);" id="methodology-last-sync-source">
+              Kaynak: Otomatik API / Güvenli Yerel Yedek Besleme
+            </div>
+          </div>
+
+          <!-- Son Senkronizasyon Kayıtları Tablosu -->
+          <h3 style="font-family:var(--font-serif); font-size:15px; color:var(--navy-primary); margin:14px 0 8px;">
+            Son Senkronizasyon Logları (<code>sync_logs</code> Tablosu)
+          </h3>
+          <div class="academic-table-wrapper" style="margin-bottom:16px;">
+            <table class="academic-table" style="font-size:12px;">
+              <thead>
+                <tr>
+                  <th>Tarih / Saat</th>
+                  <th>Kaynak / Feed</th>
+                  <th>İncelenen</th>
+                  <th>Eklenen</th>
+                  <th>Güncellenen</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody id="sync-history-table-body">
+                <tr><td colspan="6" style="text-align:center; padding:12px;">Loglar yükleniyor...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- İşletim Sistemi Otomasyonu (Cron & Windows Scheduler) -->
+          <h3 style="font-family:var(--font-serif); font-size:15px; color:var(--navy-primary); margin:16px 0 8px;">
+            İşletim Sistemi Otomasyon Kurulumu (Günde 1 Kez Çalıştırma)
+          </h3>
+          <p style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+            Uygulama açıkken dahili zamanlayıcı her gün saat <strong>09:00</strong>'da otomatik tetiklenir. Sunucu veya bilgisayar seviyesinde bağımsız arka plan görevi olarak çalıştırmak için hazırlanan betikleri kullanabilirsiniz:
+          </p>
+          <div class="etl-code-box">
+# macOS / Linux (Crontab Kurulumu - Her gün saat 09:00'da çalışır):
+./scripts/setup_cron.sh
+
+# Veya crontab -e ile doğrudan ekleyin:
+0 9 * * * /Users/gorkemutkutatar/Akillidonanim/scripts/cron_daily_sync.sh
+
+# Windows (Görev Zamanlayıcısı Kurulumu - PowerShell Yönetici olarak):
+powershell -ExecutionPolicy Bypass -File .\scripts\setup_windows_scheduler.ps1
+
+# Tek Seferlik Manuel Test:
+python3 etl/daily_sync.py
+          </div>
+        </section>
+
+        <!-- Veritabanı Sıfırlama & Toplu İçe Aktarma Araçları -->
+        <section class="paper-section" style="border-top: 3px solid var(--burgundy);">
+          <h2 style="color:var(--burgundy); font-family:var(--font-serif); font-size:18px; margin-bottom:8px;">
+            Manuel Veri Yönetimi & Toplu İçe Aktarma
+          </h2>
+          <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:16px;">
+            Bu alandan dış kaynaklı donanım veri setlerini JSON veya CSV formatında doğrudan SQLite veritabanına aktarabilir veya veritabanını varsayılan 27 örnek cihaza sıfırlayabilirsiniz.
+          </p>
+
+          <div style="display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+            <button type="button" id="btn-load-sample-json" class="btn-secondary">
+              Örnek JSON Veri Şablonu Yükle
+            </button>
+            <button type="button" id="btn-reset-database" class="btn-burgundy">
+              Veritabanını Fabrika Ayarlarına Sıfırla (27 Cihaz)
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="import-data-input">İçe Aktarılacak JSON veya CSV Verisi</label>
+            <textarea id="import-data-input" class="academic-input" rows="8" placeholder='[ { "category": "laptop", "brand": "Lenovo", "model": "Legion Slim 5", "price_try": 52000, "ram_gb": 16, "storage_gb": 512, "weight_kg": 2.3, "cpu_name": "Ryzen 7 7840HS", "gpu_name": "RTX 4060" } ]'></textarea>
+          </div>
+          <button type="button" id="btn-execute-import" class="btn-primary" style="width:auto; padding:10px 22px;">
+            Veritabanına Aktar (POST /api/devices/import)
+          </button>
+        </section>
+
+        <!-- Akademik Metodoloji Raporu -->
+        <section class="paper-section">
+          <h2>1. Karar Destek Sistemi (KDS) Matematiksel Çerçevesi</h2>
+          <p>
+            Bu sistem, donanım tedarik süreçlerindeki çok kriterli karmaşık karar problemlerini çözmek üzere geliştirilmiştir. Model, iki aşamalı bir karar mimarisi uygular:
+          </p>
+
+          <h3>Aşama 1: Sert Kısıtların Uygulanması (Hard Constraint Pruning)</h3>
+          <p>
+            Kullanıcının seçtiği kullanım amaçlarına göre mutlak asgari teknik gereksinimler belirlenir. Örneğin, <strong>Oyun</strong> amacı seçildiğinde modern oyun motorlarının bellek darboğazı yaşamaması için <code>ram_gb &lt; 16</code> olan tüm bilgisayarlar puanlama aşamasına dahi girmeden filtrelenir:
+          </p>
+          <div class="formula-card">
+            C_hard(x) = { 1, if RAM(x) ≥ 16 ∧ GPU(x) ≥ 65 ∧ Storage(x) ≥ 512 ; 0, aksi halde }
+          </div>
+          <p>
+            Benzer biçimde yalnızca <strong>Hafif (&lt; 2.0 kg)</strong> taşınabilirlik bandı seçildiğinde 2.0 kg ve üzerindeki tüm cihazlar gerekçesiyle elenir.
+          </p>
+
+          <h3>Aşama 2: Dinamik Kriter Ağırlıklandırması (Criteria Weight Synthesis)</h3>
+          <p>
+            Kullanıcı birden fazla kullanım amacı seçtiğinde (örneğin hem <em>Oyun</em> hem <em>Yazılım Geliştirme</em>), sistem iki amacın kriter öncelik vektörlerini normalize ederek birleştirir:
+          </p>
+          <div class="formula-card">
+            w_j = ( Σ_{k ∈ P} w_{j,k} / Σ_{i} Σ_{k ∈ P} w_{i,k} ) · (1 - w_{fiyat})
+          </div>
+
+          <h3>Aşama 3: Ağırlıklı Toplam Modeli (WSM - Weighted Sum Model)</h3>
+          <p>
+            Her aday cihaz için [0, 100] aralığında normalize edilmiş kriter fayda değerleri ($v_{ij}$) ve ağırlıklar ($w_j$) üzerinden toplam uygunluk skoru hesaplanır:
+          </p>
+          <div class="formula-card">
+            S_i = Σ_{j=1}^{m} w_j · v_{ij}
+          </div>
+
+          <h3>Aşama 4: %60 Uygunluk Barajı Kuralı</h3>
+          <p>
+            KDS modelinde nihai uygunluk puanı $S_i &lt; 60.0$ olan cihazlar elenenler listesine alınarak elenme gerekçesi (<em>"Uygunluk puanı %54.2 (%60 barajının altında kaldı)"</em>) ile raporlanır. Sadece barajı geçen cihazlar puana göre azalan sırada tavsiye edilir.
+          </p>
+
+          <h3>Aşama 5: Python ETL Boru Hattı (CLI Kullanımı)</h3>
+          <p>
+            Sistem harici veri setlerini dönüştüren bağımsız bir ETL motoru (<code>etl/import_devices.py</code> ve <code>etl/daily_sync.py</code>) barındırır. İşlemci ve grafik kartı adlarını regex kuralları ve benchmark eşlemeleri ile 0-100 puan skalasına dönüştürür.
+          </p>
+          <div class="etl-code-box">
+# Günlük Canlı Senkronizasyon (Tek Seferlik Manuel veya Cron):
+python3 etl/daily_sync.py
+
+# Bağımsız ETL Betiği (JSON/CSV):
+python3 etl/import_devices.py --file etl/sample_raw_devices.json --dry-run
+python3 etl/import_devices.py --file etl/sample_raw_devices.json --db data/devices.db
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: YENİ CİHAZ EKLE                                         -->
+  <!-- ============================================================== -->
+  <div id="add-device-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Yeni Cihaz Kaydı Ekle (SQLite)</h3>
+        <button type="button" id="btn-close-modal" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-device-form">
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-cat">Kategori</label>
+              <select id="new-cat" class="academic-input">
+                <option value="laptop">Bilgisayar (Laptop)</option>
+                <option value="phone">Telefon</option>
+                <option value="tablet">Tablet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-brand">Marka</label>
+              <input type="text" id="new-brand" class="academic-input" placeholder="Örn: ASUS" required>
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-model">Model Adı</label>
+              <input type="text" id="new-model" class="academic-input" placeholder="Örn: ROG Zephyrus G14" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-price">Fiyat (TL)</label>
+              <input type="number" id="new-price" class="academic-input" placeholder="Örn: 55000" required>
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-ram">RAM (GB)</label>
+              <input type="number" id="new-ram" class="academic-input" placeholder="16">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-storage">Depolama (GB)</label>
+              <input type="number" id="new-storage" class="academic-input" placeholder="512" required>
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-weight">Ağırlık (kg)</label>
+              <input type="number" step="0.01" id="new-weight" class="academic-input" placeholder="1.65">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-battery-score">Batarya Puanı (0-100)</label>
+              <input type="number" id="new-battery-score" class="academic-input" value="75" min="0" max="100">
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-cpu-name">İşlemci Adı (CPU)</label>
+              <input type="text" id="new-cpu-name" class="academic-input" placeholder="Örn: AMD Ryzen 7 7840HS" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-gpu-name">Grafik İşlemci (GPU)</label>
+              <input type="text" id="new-gpu-name" class="academic-input" placeholder="Örn: RTX 4060" required>
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-cpu-score">İşlemci KDS Puanı (0-100, Opsiyonel)</label>
+              <input type="number" id="new-cpu-score" class="academic-input" placeholder="Otomatik tahmin için boş bırakın" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-gpu-score">GPU KDS Puanı (0-100, Opsiyonel)</label>
+              <input type="number" id="new-gpu-score" class="academic-input" placeholder="Otomatik tahmin için boş bırakın" min="0" max="100">
+            </div>
+          </div>
+
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-display-score">Ekran Puanı (0-100)</label>
+              <input type="number" id="new-display-score" class="academic-input" value="85" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-camera-score">Kamera / Kalem Puanı (0-100)</label>
+              <input type="number" id="new-camera-score" class="academic-input" value="75" min="0" max="100">
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+            <button type="submit" class="btn-primary" style="width:auto; padding:10px 24px;">
+              SQLite Veritabanına Kaydet
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Academic Footer -->
+  <footer class="academic-footer">
+    <p>
+      <strong>Karar Destek Sistemleri (KDS / DSS) Projesi</strong> · Akıllı Donanım ve Cihaz Seçim Sistemi
+    </p>
+    <p style="margin-top:4px; font-size:12px;">
+      Veritabanı: SQLite (<code>data/devices.db</code>) · Algoritma: Çok Kriterli Karar Verme (MCDM / WSM)
+    </p>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

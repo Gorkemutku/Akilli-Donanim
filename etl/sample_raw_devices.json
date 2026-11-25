@@ -1,0 +1,58 @@
+[
+  {
+    "category": "laptop",
+    "brand": "Razer",
+    "model": "Blade 16 Dual Mini-LED",
+    "price_try": "89.500,00 TL",
+    "ram_gb": "32 GB",
+    "storage_gb": "1 TB",
+    "weight_kg": "2.45 kg",
+    "cpu_name": "Intel Core i9-14900HX",
+    "gpu_name": "NVIDIA GeForce RTX 4080",
+    "battery_score": 65,
+    "display_score": 96,
+    "camera_or_stylus_score": 75
+  },
+  {
+    "category": "notebook",
+    "brand": "Framework",
+    "model": "Laptop 13 AMD 7040",
+    "price": 42000,
+    "ram": 16,
+    "storage": 512,
+    "weight": "1.35 kg",
+    "cpu": "AMD Ryzen 7 7840U",
+    "gpu": "AMD Radeon 780M",
+    "battery_score": 85,
+    "display_score": 88,
+    "camera_or_stylus_score": 80
+  },
+  {
+    "category": "phone",
+    "brand": "OnePlus",
+    "model": "12 512GB",
+    "price": "41.999 TL",
+    "ram": "16 GB",
+    "storage": "512 GB",
+    "weight": "220 g",
+    "cpu": "Snapdragon 8 Gen 3",
+    "gpu": "Adreno 750",
+    "battery_score": 92,
+    "display_score": 94,
+    "camera_or_stylus_score": 90
+  },
+  {
+    "category": "tablet",
+    "brand": "Microsoft",
+    "model": "Surface Pro 9",
+    "price": "36.500 TL",
+    "ram": 16,
+    "storage": 256,
+    "weight": "879 g",
+    "cpu": "Intel Core i7-1255U",
+    "gpu": "Intel Iris Xe",
+    "battery_score": 76,
+    "display_score": 90,
+    "camera_or_stylus_score": 92
+  }
+]
